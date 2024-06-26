@@ -31,15 +31,17 @@ export default function TodoList() {
       });
     },
     onMutate: async ({ id }) => {
-      console.log(id);
+      await queryClient.cancelQueries({ queryKey: ["todos"] });
+      const previousTodos = queryClient.getQueryData(["todos"]);
       queryClient.setQueryData(["todos"], (prev) =>
         prev.map((todo) =>
           todo.id === id ? { ...todo, liked: !todo.liked } : todo
         )
       );
+      return { previousTodos };
     },
-    onError: () => {
-      queryClient.setQueryData(["todos"], previousTodos);
+    onError: (context) => {
+      queryClient.setQueryData(["todos"], context.previousTodos);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["todos"] });
